@@ -1,0 +1,279 @@
+N3:	加入1块硬币
+E2: 加入5毛硬币
+F3: 可乐需求
+G3: 红茶需求
+B4: 乌龙茶需求
+K3:	退款需求
+A7: confirm(确认) 信号，为避免用户误操作，在confirm信号上升沿来临的时候，进行处理
+
+
+module  seg7ment_sub(
+input wire [4:0] num,
+output reg [7:0] a_to_g );
+
+always @(*)
+	case(num)
+		0: a_to_g=8'b10000001;
+		1: a_to_g=8'b11001111;
+		2: a_to_g=8'b10010010;
+		3: a_to_g=8'b10000110;
+		4: a_to_g=8'b11001100;
+		5: a_to_g=8'b10100100;
+		6: a_to_g=8'b10100000; 
+		7: a_to_g=8'b10001111;
+		8: a_to_g=8'b10000000;
+		9: a_to_g=8'b10000100;
+		'hA: a_to_g=8'b10001000;
+		'hB: a_to_g=8'b11100000;
+		'hC: a_to_g=8'b10110001;
+		'hD: a_to_g=8'b11000010;
+		'hE: a_to_g=8'b10110000;
+		'hF: a_to_g=8'b10111000;
+		'h10: a_to_g=8'b00000001;
+		'h11: a_to_g=8'b01001111;
+		'h12: a_to_g=8'b00010010;
+		'h13: a_to_g=8'b00000110;
+		'h14: a_to_g=8'b01001100;
+		'h15: a_to_g=8'b00100100;
+		'h16: a_to_g=8'b00100000; 
+		'h17: a_to_g=8'b00001111;
+		'h18: a_to_g=8'b00000000;
+		'h19: a_to_g=8'b00000100;
+		'h1A: a_to_g=8'b00001000;
+		'h1B: a_to_g=8'b01100000;
+		'h1C: a_to_g=8'b00110001;
+		'h1D: a_to_g=8'b01000010;
+		'h1E: a_to_g=8'b00110000;
+		'h1F: a_to_g=8'b00111000;
+		default: a_to_g=8'b10000001;
+	endcase
+endmodule
+
+
+module sell(
+	input clk,
+	input clr,
+	input request_cola,
+	input request_rtea,
+	input request_oolong,
+	input coin_ten,
+	input coin_five,
+	input confirm,
+	input request_return,
+	output reg cola_flag,
+	output reg rtea_flag,
+	output reg oolong_flag,
+	output [3:0]an,
+	output [7:0]a_to_g
+);
+	reg [32:0] clock;
+	reg [17:0] s;
+	reg [26:0] twinkle_clock;
+	reg [2:0] storage_cola,storage_rtea,storage_oolong;
+	reg [15:0] money;
+	reg [15:0] temp;
+	reg twinkle;
+	reg [4:0]sw;
+initial 
+begin
+	money = 0;
+	clock = 0;
+	storage_cola = 5;
+	storage_rtea = 5;
+	storage_oolong = 5;
+	cola_flag = 1;
+	rtea_flag = 1;
+	oolong_flag = 1;
+	twinkle = 0;
+end
+
+always @(posedge clk)
+begin
+	if(clr)
+		begin
+			；
+		end
+	else
+		begin
+			clock = clock + 1;
+			if(clock[32:29]>15)
+				clock = 0;
+			s = s + 1;
+			if(s[17])
+				s = 0;
+			if(twinkle)
+				begin
+					if(!twinkle_clock[26])
+						twinkle_clock = twinkle_clock + 1;	// 闪烁2s定时
+					else
+						;
+				end
+			else
+				twinkle_clock = 0;	//	平常的时候计时器都是0，等到twinkle有效了开始计时
+		end
+end
+
+always @(posedge confirm)
+	begin
+		if(coin_ten)
+			begin 
+				money[7:4] = money[7:4] + 1;	//	一块钱
+				if(money[7:4] == 10)
+					begin
+						money[7:4] = 0;
+						money[11:8] = money[11:8] + 1;
+						if(money[11:8] == 10)
+							begin
+							money[11:8] = 0;
+							money[15:12] = money[15:12] + 1;
+								if(money[15:12] == 10)
+									money[15:12] = 0;
+							end
+					end
+				temp = money;
+				twinkle = 0;
+			end
+			
+			if(coin_five)
+				begin 
+					money[3:0] = money[3:0] + 5;	//	jiao
+					if(money[3:0] > 9)
+						begin
+							money[3:0] = money[3:0] - 10;
+							money[7:4] = money[7:4] + 1;
+						end
+					if(money[7:4] > 9)
+						begin
+							money[7:4] = 0;
+							money[11:8] = money[11:8] + 1;
+						end	
+					if(money[11:8] > 9)
+						begin
+							money[11:8] = 0;
+							money[15:12] = money[15:12] + 1;
+						end
+						
+					if(money[15:12] > 9)
+						begin
+							money[15:12] = 0;
+						end
+							
+					temp = money;
+					fail = 0;
+					twinkle = 0;
+				end
+	
+			if(request_cola)
+				begin
+					if(!cola_flag)
+						begin
+							temp = 'hFFFF;
+						end
+					else if(money<'h0020)
+						begin
+							temp = 'h0020;
+							twinkle = 1;
+						end
+					else
+						begin
+							money = money - 32;
+							if(money[7:4]>9)
+								money[7:4] = money[7:4] - 6;
+							if(money[11:8]>9)
+								money[11:8] = money[11:8] - 6;
+							storage_cola = storage_cola - 1;
+							if(storage_cola == 0)
+								cola_flag = 0;
+							temp = money;
+							twinkle = 0;
+						end
+				end	
+			
+			
+			if(request_rtea)
+				begin
+					if(!rtea_flag)
+						begin
+							temp = 'hFFFF;
+							fail = 1;
+						end
+					else if(money<'h0035)
+						begin
+							temp = 'h0035;
+							twinkle = 1;
+						end
+					else
+						begin
+							money = money - 53;
+							if(money[3:0]>9)
+								money[3:0] = money[3:0] - 6;
+							if(money[7:4]>9)
+								money[7:4] = money[7:4] - 6;
+							if(money[11:8]>9)
+								money[11:8] = money[11:8] - 6;
+							storage_rtea = storage_rtea - 1;
+							if(storage_rtea == 0)
+								rtea_flag = 0;
+							temp = money;
+							twinkle = 0;
+						end
+				end
+
+			if(request_oolong)
+				begin
+					if(!oolong_flag)
+						begin
+							temp = 'hFFFF;
+						end
+					else if(money<'h0030)
+						begin
+							temp = 'h0030;
+							twinkle = 1;
+						end
+					else
+						begin
+							money = money - 48;
+							if(money[7:4]>9)
+								money[7:4] = money[7:4] - 6;
+							if(money[11:8]>9)
+								money[11:8] = money[11:8] - 6;
+							storage_oolong = storage_oolong - 1;
+							if(storage_oolong == 0)
+								oolong_flag = 0;
+							temp = money;
+							twinkle = 0;
+						end
+				end
+			if(request_return)
+				begin
+					temp = money;
+					money = 0;
+					twinkle = 1;
+				end
+			if(twinkle_clock[26])
+				begin
+					temp = money;
+					twinkle = 0;
+				end
+	end
+assign temp_clock=clock[22];	//	1s
+assign an[0] = !((!s[15] && !s[16]) && (!twinkle || temp_clock || twinkle_clock[26]));		
+assign an[1] = !((s[15] && !s[16]) && (!twinkle || temp_clock || twinkle_clock[26]));
+assign an[2] = !((!s[15] && s[16]) && (!twinkle || temp_clock || twinkle_clock[26]));
+assign an[3] = !((s[15] && s[16]) && (!twinkle || temp_clock || twinkle_clock[26]));
+//	左半部分是四种情况的对应，右边，当twinkle==0(无效)右半部分为1，不闪烁
+//	当twinkle==1的时候，通过temp_clock的变化来使得数码管显示频率降低从而闪烁
+//	当2s左右过去后，twinkle_clock[26]将会变成1，闪烁结束
+
+always @(temp, an)
+	case(s[16:15])
+		2'b00: sw = {0,temp[3:0]};
+		2'b01: sw = {1,temp[7:4]};
+		2'b10: sw = {0,temp[11:8]};
+		2'b11: sw = {0,temp[15:12]};
+	endcase
+	
+	seg7ment_sub A1(.num(sw),
+             .a_to_g(a_to_g)
+			  );
+endmodule

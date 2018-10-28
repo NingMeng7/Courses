@@ -1,0 +1,28 @@
+COMMENT 1
+根据地址有效信息计算: A19~A0 1111 0000 0000 0000 0000: DS:0F00H
+RAM: 1001 0000 0000 0000 : 9000H
+ROM: 1101 0000 0000 0000 : 0D000H
+现在要从ROM 送 32个单元内容到RAM
+1
+
+CODE SEGMENT
+  ASSUME CS:CODE  ; 将这段和CS联系起来
+  
+  MAIN PROC FAR ; 名称为 MAIN 的一个可以被不在同段函数调用的子函数
+START: MOV AX, 0F000H
+  MOV CS, AX
+  MOV SI, 0D000H
+  MOV DI, 9000H
+  
+  MOV CX, 20H
+S1: MOV AL, [SI]
+    MOV [DI], AL
+    INC SI
+    INC DI
+    LOOP S1
+    
+    MOV AH, 4CH
+    INT 21H ; 返回DOS操作系统
+    MAIN ENDP
+      CODE ENDS
+        END START

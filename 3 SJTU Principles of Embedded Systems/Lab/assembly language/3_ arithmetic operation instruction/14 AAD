@@ -1,0 +1,20 @@
+> 1. 格式 
+
+AAD
+
+> 2. 操作数
+
+隐含为AL, AH
+
+> 3. 执行
+
+AL <- (AH)*0AH + (AL)
+
+AH<-0
+
+> 4. 示例程序
+
+		MOV AX, 0602H
+		MOV BL, 8
+		AAD ; AX = 3EH
+		IDIV BL ; AX=0607H  62/8 = 7....6

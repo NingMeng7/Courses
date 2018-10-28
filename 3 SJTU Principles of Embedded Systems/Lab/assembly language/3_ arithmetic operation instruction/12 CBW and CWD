@@ -1,0 +1,29 @@
+> 1. 格式
+
+CBW
+
+CWD
+
+> 2. 操作数
+
+隐含: 
+
+1. AL -> AX
+2. AX -> (DX, AX)
+
+> 3. 执行
+
+CBW: if (AL)<80H, 则(AH)=00H, 否则(AH)=0FFH
+
+CWD: AX->(DX,AX)
+
+> 4. 标志位
+
+不影响标志位
+
+> 5. 示例程序
+
+		MOV AL, 4
+		CBW	; AX = 0004
+		MOV AL, 84H
+		CBW ; AX = FF84

@@ -1,0 +1,34 @@
+COMMENT 1
+某控制电路，输出控制端口地址为34CH，输入状态端口地址为34DH，从输入端口读入外部状态，如果不为80H，就输出FFH关闭设备，否则输入00H开启设备。
+1
+
+MOV DX, 34DH
+IN  AL, DX
+CMP AL, 80H
+JNZ GO-OFF
+
+MOV DX, 34CH
+MOV AL, 00H
+OUT DX, AL
+JMP EXIT  ; break
+
+GO-OFF: MOV DX, 34CH
+MOV AL, 0FFH
+OUT DX, AL
+
+EXIT: RET
+
+
+COMMENT 2
+从240H端口读取数据,测试其是否是20H，如果不是则将241H端口清零，否则转向NEXT
+2
+
+MOV DX, 240H
+IN AL, DX
+CMP AL, 20H
+JZ NEXT
+MOV DX, 241H
+MOV AL, 0
+OUT DX, AL
+...
+NEXT:...

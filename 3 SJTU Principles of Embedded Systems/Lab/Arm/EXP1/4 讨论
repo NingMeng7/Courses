@@ -1,0 +1,14 @@
+1. 人为修改内部时钟或外部时钟，如将内部时钟改为 8M，或将外部时钟改为 30M，会有什么结果
+2. 能否将 PLL 时钟调整到外部时钟的频率以下？如将 25M 外部时钟用 PLL 后调整为 20M？ 
+
+3. 将 PLL后的时钟调整为最大值 120M，LED 闪烁会有什么变化？为什么？
+闪烁变快,每句语句执行频率变大。
+
+4. GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_0, GPIO_PIN_0)此函数中，每个函数 项的意义。第三个函数项为 GPIO_PIN_0，如果改为 1 或改为 2，或其他值，
+分别有什么现象？
+1: 正常
+2: gg，不亮了
+
+5. 结合硬件说明 GPIOPinConfigure 行的作用。如果此行注释，在 WATCH 窗口中观察 key_value 值会有什么变化。
+功能: Configures the alternate function of a GPIO pin.
+key_value始终为0(全局变量初始化为0后一直没改变).
